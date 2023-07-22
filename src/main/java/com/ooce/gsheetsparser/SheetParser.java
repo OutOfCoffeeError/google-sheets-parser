@@ -22,6 +22,11 @@ public class SheetParser {
 		this._cfg = cfg;
 	}
 	
+	/**
+	 * Calls the provided Google sheets URL from the {@code SheetConfig} and fetches the result as a String
+	 * @return String format of the Spreadsheet data
+	 * @throws HttpException
+	 */
 	public String parseAsString() throws HttpException {
 		String data = downloadSheet();
 		if(_cfg.getOutputFormat().equalsIgnoreCase(OutputFormat.JSON.toString())) {
@@ -30,12 +35,24 @@ public class SheetParser {
 		return data;
 	}
 
+	/**
+	 * Removes the additional data from the returned String of a spreadsheet data and keeps the JSON part
+	 * @param data
+	 * @return the JSON String from the spreadsheet data
+	 */
 	private String parseToJsonString(String data) {
 		Objects.requireNonNull(data);
 		return data.substring(JSON_DATA_START_IDX, data.length()-JSON_DATA_END_OFFSET);
 	}
 	
+	/**
+	 * Saves the spreadsheet data to the provided file location
+	 * @param file
+	 * @throws IOException
+	 * @throws HttpException
+	 */
 	public void saveToFile(File file) throws IOException, HttpException {
+			Objects.requireNonNull(file);
 			String data = parseAsString();
 			try {
 				Files.write(file.toPath(), data.getBytes());
@@ -44,11 +61,15 @@ public class SheetParser {
 			}
 		
 	}
-
-	private String downloadSheet() throws HttpException {
+	
+	/**
+	 * Invokes the HTTP URL of the Google Sheets to download the spreadsheet data provided in the {@code SheetConfig}
+	 * @return Raw data from the Google Sheets
+	 * @throws HttpException
+	 */
+	public String downloadSheet() throws HttpException {
 		try {
 			final HttpGet request = new HttpGet(_cfg.getUrl());
-			System.out.println(_cfg.getUrl());
 		    try (CloseableHttpClient client = HttpClientBuilder.create().build();
 
 		        CloseableHttpResponse response = (CloseableHttpResponse) client
